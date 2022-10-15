@@ -1,4 +1,6 @@
-﻿function Display-Menu($selected){
+$host.ui.RawUI.WindowTitle = “My application"
+
+function Display-Menu($selected){
     CLS
     write-Host ""
     foreach($m in $menu){
@@ -27,13 +29,14 @@ function Move-Menu($cur,$dir){
     return $selected
 }
 
+# Main menu that will show at start
 $menu = @(
   "Option A"
   "Option B"
   "Option C"
   "Option D"
 )
-
+# Default selection
 $selected = "Option A"
 $loop = 1
 
