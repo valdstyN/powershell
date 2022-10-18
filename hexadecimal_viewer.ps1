@@ -29,8 +29,6 @@ function getChar($i){
     return $c
 }
 
-#$filename = 'C:\Users\valdstyN\Desktop\Useful apps\dns.bat'
-#filename = 'C:\Users\valdstyN\Desktop\Useful apps\putty\PUTTYGEN.EXE'
 $filename = Read-Host "Filename"
 $filename = -join($path,'\',$filename)
 
