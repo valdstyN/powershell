@@ -120,10 +120,15 @@ function hana($method,$entity,$select,$filter,$top,$body,$out,$cnt){
     if($top.Length -ne 0){$top='$top='+$top}else{$top=""}
     
     # for now we'll just assume that if the requested entity is not for cust projects, it is for partners
+    # also, Product-related entities all start with A_Product
     if($CPModule.IndexOf($entity) -ge 0){
         $module = $apiModule.CustomerProjects
     }else{
-        $module = $apiModule.BusinessPartners
+        if($entity.Substring(0,9) -eq 'A_Product'){
+            $module = $apiModule.Products
+        }else{
+            $module = $apiModule.BusinessPartners
+        }
     }
        
     $uri = ($baseUrl+$module+$entity+$countf+'?') + (($select,$filter,$top -join '&') -replace "&+","&")
@@ -177,6 +182,7 @@ hana -entity 'ProjectSet' -select 'ProjectID,OrgID,CreatedOn' -top 10
 hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID' -top 10 -filter "Project ID eq '00000035'"
 hana -entity 'A_Customer' -select 'Customer,CustomerFullName' -top 10
 hana -entity 'A_Customer' -cnt true
+hana -entity 'A_Product' -top 10 -select 'ProductType,Product'
 
 Notes:
 * method 'get' by default
