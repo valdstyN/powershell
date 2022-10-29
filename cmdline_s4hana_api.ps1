@@ -1,12 +1,36 @@
-# to be updated - add a mapping table between modules and entities (currently only working for Projects-related entities)
-# sample input: hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID' -top 10
-
 CLS
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force
 $session = new-object microsoft.powershell.commands.webrequestsession
 
-# function format-json taken from source:
-# https://stackoverflow.com/questions/56322993/proper-formating-of-json-using-powershell/56324939#56324939
+$apiModule = @{
+    "CustomerProjects" = "cpd/SC_PROJ_ENGMT_CREATE_UPD_SRV/"
+    "BusinessPartners" = "sap/API_BUSINESS_PARTNER/"
+    "InternalProjects" = "sap/API_ENTERPRISE_PROJECT_SRV;v=0002/"
+    "Products" = "sap/API_PRODUCT_SRV/"
+}
+$CPModule = @(
+    "A_CustProjSlsOrd"
+    "A_CustProjSlsOrdItem"
+    "A_CustProjSlsOrdItemPartner"
+    "A_CustProjSlsOrdItemText"
+    "A_CustProjSlsOrdItemWorkPckg"
+    "A_CustProjSlsOrdItmBillgPlnItm"
+    "A_CustProjSlsOrdPartner"
+    "A_CustProjSlsOrdText"
+    "A_EngmntProjRsceDmnd"
+    "A_EngmntProjRsceDmndDistr"
+    "A_EngmntProjRsceDmndSkill"
+    "A_EngmntProjRsceSup"
+    "A_EngmntProjRsceSupDistr"
+    "WorkPackageFunctionSet"
+    "ProjectSet"
+    "WorkPackageSet"
+    "WorkItemSet"
+    "DemandSet"
+    "ProjectRoleSet"
+)
+
+# code from the interweb
 function Format-Json {
     [CmdletBinding(DefaultParameterSetName = 'Prettify')]
     Param(
@@ -23,14 +47,17 @@ function Format-Json {
         [Parameter(ParameterSetName = 'Prettify')]
         [switch]$AsArray
     )
+
     if ($PSCmdlet.ParameterSetName -eq 'Minify') {
         return ($Json | ConvertFrom-Json) | ConvertTo-Json -Depth 100 -Compress
     }
     if ($Json -notmatch '\r?\n') {
         $Json = ($Json | ConvertFrom-Json) | ConvertTo-Json -Depth 100
     }
+
     $indent = 0
     $regexUnlessQuoted = '(?=([^"]*"[^"]*")*[^"]*$)'
+
     $result = $Json -split '\r?\n' |
         ForEach-Object {
             if ($_ -match "[}\]]$regexUnlessQuoted") {
@@ -40,24 +67,26 @@ function Format-Json {
             if ($_ -match "[\{\[]$regexUnlessQuoted") {
                 $indent += $Indentation
             }
+
             $line
         }
+
     if ($AsArray) { return $result }
     return $result -Join [Environment]::NewLine
 }
 
-# -- Q TENANT ---
-$user = 'S/4 API user here'
-$pwd = 'S/4 API password here'
+# -- S/4 TENANT ---
+$user = 'API_USER'
+$pwd = 'API_PASSWORD'
 $baseUrl = 'https://myXXXXXX.s4hana.ondemand.com/sap/opu/odata/'
 $creds = $user+":"+$pwd
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($creds))
 $basicauth_header = "Basic $encodedCreds"
-$uri = $baseUrl + 'cpd/SC_PROJ_ENGMT_CREATE_UPD_SRV/ProjectSet?$top=1'
+$uri = $baseUrl + 'cpd/SC_PROJ_ENGMT_CREATE_UPD_SRV/ProjectSet?$top=1' # only to get the token
 
 # need a mapping table so we don't have to indicate the module (only the entity)
 
-function hana($method,$entity,$select,$filter,$top,$body){
+function hana($method,$entity,$select,$filter,$top,$body,$out,$cnt){
 
     # [1] get the CSRF token
     $headers = @{
@@ -78,14 +107,53 @@ function hana($method,$entity,$select,$filter,$top,$body){
         # extra header required for internal projects
     }
 
+    if($cnt -eq $true){
+        $countf='/$count'
+        $top=''
+        $select=''
+    }else{
+        $countf=''
+    }
+    if($method.Length -eq 0){$method='get'}
     if($select.Length -ne 0){$select='$select='+$select}else{$select=""}
     if($filter.Length -ne 0){$filter='$filter='+$filter}else{$filter=""}
     if($top.Length -ne 0){$top='$top='+$top}else{$top=""}
     
-    $uri = ($baseUrl+'cpd/SC_PROJ_ENGMT_CREATE_UPD_SRV/'+$entity+'?') + (($select,$filter,$top -join '&') -replace "&+","&")
+    # for now we'll just assume that if the requested entity is not for cust projects, it is for partners
+    if($CPModule.IndexOf($entity) -ge 0){
+        $module = $apiModule.CustomerProjects
+    }else{
+        $module = $apiModule.BusinessPartners
+    }
+       
+    $uri = ($baseUrl+$module+$entity+$countf+'?') + (($select,$filter,$top -join '&') -replace "&+","&")
     write-host ">> Querying S/4HANA {$uri}"
     $rq = Invoke-WebRequest -Method $method -Uri $uri -Headers $headers -Body $body -WebSession $session
-    write-host ($rq | Format-Json)
+
+    if($cnt -eq $true){
+        write-host "Count of records: $rq"
+    }else{
+        if($out.Length -eq 0 -or $out -eq 'csv'){
+          $json = $rq | ConvertFrom-Json
+          $line = ''
+          # output header
+          foreach ($obj in $json.d.results[0].PSObject.Properties) {
+                if($obj.Name -ne '__metadata'){$line += $obj.Name+";"}
+          }
+          $line += "`n"
+          $json.d.results.forEach{
+             foreach ($obj in $_.PSObject.Properties) {
+                if($obj.Name -ne '__metadata'){$line += ($obj.Value.toString())+";"}
+            }
+            $line += "`n"
+          }
+          write-host $line
+        }
+        if($out -eq 'json'){
+          write-host ($rq | Format-Json)
+        }
+    }
+
 }
 
 $q = "X"
@@ -100,4 +168,17 @@ while($q.Length -ne 0){
 }
 
 
+<# 
+Examples:
+hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID,CreatedOn' -top 10
+hana -entity 'ProjectSet' -select 'ProjectID,OrgID,CreatedOn' -top 10
+hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID' -top 10 -filter "Project ID eq '00000035'"
+hana -entity 'A_Customer' -select 'Customer,CustomerFullName' -top 10
+hana -entity 'A_Customer' -cnt true
 
+Notes:
+* method 'get' by default
+* output 'csv' by default
+* with parameter cnt = true (count), select and top parameters will be removed
+
+#>
