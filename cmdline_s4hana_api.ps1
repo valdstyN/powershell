@@ -147,9 +147,11 @@ function hana($method,$entity,$select,$filter,$top,$body,$out,$cnt){
             }
             $line += "`n"
           }
+          write-output $line | Set-Clipboard
           write-host $line
         }
         if($out -eq 'json'){
+          write-output (($rq | Format-Json)) | Set-Clipboard
           write-host ($rq | Format-Json)
         }
     }
