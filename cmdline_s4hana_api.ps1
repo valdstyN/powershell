@@ -55,13 +55,13 @@ function Format-Json {
 }
  
 # -- S/4 TENANT ---
-$user = ‘API_USER'
-$pwd = ‘API_PWD’
+$user = 'API_USER'
+$pwd = 'API_PWD'
 $baseUrl = 'https://myXXXXXX.s4hana.ondemand.com/sap/opu/odata/'
 $creds = $user+":"+$pwd
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($creds))
 $basicauth_header = "Basic $encodedCreds"
-$uri = $baseUrl + 'cpd/SC_PROJ_ENGMT_CREATE_UPD_SRV/ProjectSet?$top=1' # only to get the token
+$uri = $baseUrl + 'cpd/SC_PROJ_ENGMT_CREATE_UPD_SRV/ProjectSet?$top=1'
 
 # need a mapping table so we don't have to indicate the module (only the entity)
 
