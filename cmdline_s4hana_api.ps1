@@ -1,9 +1,29 @@
-# this version now works with shorthands (-e,-m,-f…)
-# f - filter -o out
-# s - select -e entity
-# t - top -m method
-# also adds -noconsole
-# + couple of fixes
+<#
+ this version now works with shorthands (-e,-m,-f…)
+ f - filter -o out
+ s - select -e entity
+ t - top -m method
+ also adds -noconsole 1
+
+Examples:
+hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID,CreatedOn' -t 10
+hana -e 'ProjectSet' -s 'ProjectID,OrgID,CreatedOn' -t 10
+hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID' -t 10 -f "Project ID eq '00000035'"
+hana -e 'A_Customer' -s 'Customer,CustomerFullName' -t 10
+hana -e 'A_Customer' -cnt true
+hana -e 'A_Product' -t 10 -s 'ProductType,Product'
+hana -e 'ProjectSet' -t 10 -f "startswith(Project ID, 'D60')" -cnt true
+hana -e 'ProjectSet' -t 100 -noconsole 1
+hana -e 'ProjectSet' -t 100 -noconsole 1
+Update:
+hana -m 'patch' -e "A_Customer('1000000')" -b '{"d":{"TrainStationName":"Test"}}'
+
+Notes:
+* method 'get' by default
+* output 'csv' by default
+* with parameter cnt = true (count), select and top parameters will be removed
+
+#>
 
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force
 $session = new-object microsoft.powershell.commands.webrequestsession
@@ -161,24 +181,3 @@ while($q.Length -ne 0){
         Invoke-Expression $q
     }
 }
-
-<#
-Examples:
-hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID,CreatedOn' -t 10
-hana -e 'ProjectSet' -s 'ProjectID,OrgID,CreatedOn' -t 10
-hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID' -t 10 -f "Project ID eq '00000035'"
-hana -e 'A_Customer' -s 'Customer,CustomerFullName' -t 10
-hana -e 'A_Customer' -cnt true
-hana -e 'A_Product' -t 10 -s 'ProductType,Product'
-hana -e 'ProjectSet' -t 10 -f "startswith(Project ID, 'D60')" -cnt true
-hana -e 'ProjectSet' -t 100 -noconsole 1
-hana -e 'ProjectSet' -t 100 -noconsole 1
-
-Update:
-hana -m 'patch' -e "A_Customer('1000000')" -b '{"d":{"TrainStationName":"Test"}}'
-
-Notes:
-* method 'get' by default
-* output 'csv' by default
-* with parameter cnt = true (count), select and top parameters will be removed
-#>
