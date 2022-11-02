@@ -156,7 +156,7 @@ while($q.Length -ne 0){
     $q = Read-Host '>> '
     if($q.Length -gt 0) {
        if($q -eq 'sample'){
-            $q =  "hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID' -top 10"
+            $q =  "hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID' -t 10"
          }
         Invoke-Expression $q
     }
@@ -164,14 +164,14 @@ while($q.Length -ne 0){
 
 <#
 Examples:
-hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID,CreatedOn' -top 10
-hana -entity 'ProjectSet' -select 'ProjectID,OrgID,CreatedOn' -top 10
-hana -method 'get' -entity 'ProjectSet' -select 'ProjectID,OrgID' -top 10 -filter "Project ID eq '00000035'"
-hana -entity 'A_Customer' -select 'Customer,CustomerFullName' -top 10
-hana -entity 'A_Customer' -cnt true
-hana -entity 'A_Product' -top 10 -select 'ProductType,Product'
-hana -entity 'ProjectSet' -top 10 -filter "startswith(Project ID, 'D60')" -cnt true
-hana -entity 'ProjectSet' -top 100 -noconsole 1
+hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID,CreatedOn' -t 10
+hana -e 'ProjectSet' -s 'ProjectID,OrgID,CreatedOn' -t 10
+hana -m 'get' -e 'ProjectSet' -s 'ProjectID,OrgID' -t 10 -f "Project ID eq '00000035'"
+hana -e 'A_Customer' -s 'Customer,CustomerFullName' -t 10
+hana -e 'A_Customer' -cnt true
+hana -e 'A_Product' -t 10 -s 'ProductType,Product'
+hana -e 'ProjectSet' -t 10 -f "startswith(Project ID, 'D60')" -cnt true
+hana -e 'ProjectSet' -t 100 -noconsole 1
 hana -e 'ProjectSet' -t 100 -noconsole 1
 
 Update:
