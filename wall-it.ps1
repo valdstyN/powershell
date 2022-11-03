@@ -18,20 +18,18 @@ $thispath = $PSScriptRoot + "\"
 $text = Read-Host "Write message?"
 
 if($text -eq ".get"){
-    # save the wallpaper to script folder
+    # save the current wallpaper to script folder
     Copy-Item ("C:\Users\"+[System.Windows.Forms.SystemInformation]::UserName+"\AppData\Roaming\Microsoft\Windows\Themes\TranscodedWallpaper") -Destination ($thispath + "TranscodedWallpaper")
 }else{
-    # get the current wallpaper as BMP -- ok but if we set as wallpaper, it won't be "blank" anymore
+    # get the current wallpaper as BMP
     $bmp = [System.Drawing.Bitmap]::FromFile($thispath + "TranscodedWallpaper")
 
-    # edit BMP
+    # edit wallpaper
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $font = [System.Drawing.Font]::new("Arial",20)
     $brush = [System.Drawing.Brushes]::White
-    $bw = $bmp.Width
-    $bh = $bmp.Height
-    $pX  = [Math]::abs([System.Windows.Forms.Cursor]::Position.X)
-    $pY = [Math]::abs([System.Windows.Forms.Cursor]::Position.Y)
+    $pX  = [System.Windows.Forms.Cursor]::Position.X
+    $pY = [System.Windows.Forms.Cursor]::Position.Y
     $g.DrawString($text, $font, $brush, $pX, $pY); 
  
     # save BMP
