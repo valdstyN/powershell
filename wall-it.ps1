@@ -9,6 +9,7 @@ Position of the text is based on the mouse coordinates.
 
 #>
 
+# had to put these 2 lines else the script wouldn't work in console 
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
