@@ -1,4 +1,4 @@
-﻿# This script generates a hexadecimal view of a binary file.
+﻿# This script generates a hexadecimal view of a file.
 # Beware that it is pretty slow.
 
 cls
