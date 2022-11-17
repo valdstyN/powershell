@@ -1,5 +1,5 @@
 <#
-The first time the script is executed (and everytime you change the wallpaper), type in ".get" as command to create a copy of the wallpaper.
+Everytime you change the wallpaper), type in ".get" in the 'Write message?' prompt to create a new copy of the wallpaper.
 This copy will be used everytime you then want to write a message.
 
 Once the new wallpaper has been saved ("wallpaper.bmp" in the local folder), it will be set automatically.
